@@ -1,20 +1,4 @@
-# Allow only browser-compatible model assets for Vercel
-models/*
-!models/briaai/
-models/briaai/RMBG-1.4/*
-!models/briaai/RMBG-1.4/config.json
-!models/briaai/RMBG-1.4/preprocessor_config.json
-!models/briaai/RMBG-1.4/model.safetensors
-!models/briaai/RMBG-1.4/onnx/
-models/briaai/RMBG-1.4/.cache/
-models/briaai/RMBG-1.4/*.pth
-models/briaai/RMBG-1.4/*.bin
-models/briaai/RMBG-1.4/*.py
-models/briaai/RMBG-1.4/*.md
-models/briaai/RMBG-1.4/*.txt
-models/briaai/RMBG-1.4/*.jpg
-models/briaai/RMBG-1.4/*.png
-models/briaai/RMBG-1.4/.gitattributes
+models/
 node_modules/
 .DS_Store
 
