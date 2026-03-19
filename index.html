@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍕 The Pizza Oven — AI Background Remover</title>
+    <meta name="description"
+        content="Remove image backgrounds with the magic of fire. Toss your image into the pizza oven and watch the AI cook.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=DM+Sans:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --fire-orange: #FF6B1A;
+            --ember-red: #CC2200;
+            --ash-black: #1A1008;
+            --stone-grey: #8B7355;
+            --wood-brown: #5C3A1E;
+            --cream-dough: #F5E6C8;
+            --char-dark: #2D1A0A;
+            --glow-yellow: #FFD700;
+        }
+
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--ash-black);
+            color: var(--cream-dough);
+            display: flex;
+            flex-direction: column;
+            background-image:
+                radial-gradient(ellipse at 50% 30%, rgba(255, 107, 26, 0.06) 0%, transparent 60%),
+                repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(255, 255, 255, 0.01) 50px, rgba(255, 255, 255, 0.01) 51px),
+                repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(255, 255, 255, 0.01) 50px, rgba(255, 255, 255, 0.01) 51px);
+        }
+
+        /* ===== HEADER ===== */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 1.5rem;
+            background: linear-gradient(180deg, rgba(45, 26, 10, 0.95), rgba(26, 16, 8, 0.9));
+            border-bottom: 2px solid rgba(255, 107, 26, 0.3);
+            z-index: 100;
+            flex-shrink: 0;
+        }
+
+        header h1 {
+            font-family: 'Lilita One', cursive;
+            font-size: 1.6rem;
+            background: linear-gradient(135deg, var(--glow-yellow), var(--fire-orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: none;
+            letter-spacing: 1px;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .header-controls button {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 107, 26, 0.4);
+            background: rgba(92, 58, 30, 0.6);
+            color: var(--cream-dough);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .header-controls button:hover {
+            background: rgba(255, 107, 26, 0.3);
+            transform: scale(1.1);
+        }
+
+        .header-controls button.muted {
+            opacity: 0.4;
+        }
+
+        /* ===== SCENE ===== */
+        #scene {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem;
+            position: relative;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        /* ===== OVEN ===== */
+        #oven-wrapper {
+            position: relative;
+            width: 320px;
+            height: 220px;
+            margin-bottom: 0.2rem;
+            flex-shrink: 0;
+        }
+
+        #chimney {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 45px;
+            background: linear-gradient(180deg, #5a3a1e, #4a2a12);
+            border-radius: 4px 4px 0 0;
+            z-index: 1;
+        }
+
+        .smoke {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: radial-gradient(circle, rgba(200, 190, 180, 0.35), rgba(180, 170, 160, 0.1), transparent);
+            border-radius: 50%;
+            top: -10px;
+            opacity: 0;
+            animation: smoke-rise 4s ease-out infinite;
+            filter: blur(2px);
+        }
+
+        .smoke:nth-child(1) {
+            left: 6px;
+            animation-delay: 0s;
+        }
+
+        .smoke:nth-child(2) {
+            left: 18px;
+            animation-delay: 1.3s;
+        }
+
+        .smoke:nth-child(3) {
+            left: 30px;
+            animation-delay: 2.6s;
+        }
+
+        @keyframes smoke-rise {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 0;
+            }
+
+            15% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+
+            100% {
+                transform: translateY(-70px) scale(3);
+                opacity: 0;
+            }
+        }
+
+        #oven-arch {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 160px 160px 8px 8px;
+            overflow: hidden;
+            background:
+                repeating-linear-gradient(90deg, #7a3d1a 0px, #7a3d1a 36px, #3d1e08 36px, #3d1e08 38px),
+                repeating-linear-gradient(0deg, transparent 0px, transparent 22px, #3d1e08 22px, #3d1e08 24px),
+                linear-gradient(180deg, #8B4513, #6B3410);
+            box-shadow:
+                0 0 40px rgba(255, 107, 26, 0.15),
+                inset 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        #oven-interior {
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 155px;
+            border-radius: 100px 100px 8px 8px;
+            background: radial-gradient(ellipse at 50% 70%, #FFD700, #FF6B1A, #CC2200, #1A1008);
+            box-shadow: inset 0 0 40px rgba(255, 107, 26, 0.5);
+            overflow: hidden;
+        }
+
+        #oven-interior.active {
+            animation: oven-glow 1.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes oven-glow {
+            0% {
+                box-shadow: inset 0 0 40px rgba(255, 107, 26, 0.5);
+            }
+
+            100% {
+                box-shadow: inset 0 0 70px rgba(255, 107, 26, 0.8), 0 0 30px rgba(255, 107, 26, 0.3);
+            }
+        }
+
+        #fire-canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        #baking-preview {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            z-index: 1;
+            display: none;
+        }
+
+        #baking-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 50%;
+            animation: spin-pizza 3s linear infinite;
+            filter: brightness(0.85) sepia(0.3);
+        }
+
+        @keyframes spin-pizza {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* OVEN DOOR */
+        #door-container {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 180px;
+            height: 120px;
+            perspective: 600px;
+            z-index: 5;
+        }
+
+        #oven-door {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #555, #333, #444);
+            border-radius: 90px 90px 4px 4px;
+            border: 3px solid #666;
+            transform-origin: top center;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 2px 10px rgba(255, 255, 255, 0.1), 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        #oven-door .handle {
+            width: 60px;
+            height: 8px;
+            background: #888;
+            border-radius: 4px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        #oven-door.open {
+            transform: rotateX(-95deg);
+        }
+
+        /* LIGHT BURST */
+        #light-burst {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.6), rgba(255, 107, 26, 0.2), transparent 70%);
+            border-radius: 50%;
+            opacity: 0;
+            z-index: 4;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+
+        #light-burst.show {
+            opacity: 1;
+            animation: burst-pulse 1s ease-out;
+        }
+
+        @keyframes burst-pulse {
+            0% {
+                transform: translate(-50%, -50%) scale(0.3);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 0.6;
+            }
+        }
+
+        /* ===== TEMPERATURE GAUGE ===== */
+        #gauge-box {
+            position: absolute;
+            right: -80px;
+            top: 30px;
+            width: 70px;
+            text-align: center;
+        }
+
+        #gauge-box svg {
+            width: 70px;
+            height: 70px;
+        }
+
+        .gauge-bg {
+            fill: none;
+            stroke: #3d2a14;
+            stroke-width: 6;
+            stroke-linecap: round;
+        }
+
+        .gauge-fill {
+            fill: none;
+            stroke: url(#gaugeGrad);
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-dasharray: 188.5;
+            stroke-dashoffset: 188.5;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        .gauge-needle {
+            fill: var(--ember-red);
+            transform-origin: 35px 35px;
+            transition: transform 1s ease;
+        }
+
+        #temp-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--fire-orange);
+            margin-top: 2px;
+        }
+
+        /* ===== PIZZA PEEL ===== */
+        #peel {
+            position: relative;
+            width: 280px;
+            height: 32px;
+            margin: 0.3rem 0;
+            flex-shrink: 0;
+            transform: translateX(0);
+            transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s ease;
+            opacity: 1;
+        }
+
+        #peel.shoved {
+            transform: translateX(0) translateY(-160px) scale(0.6);
+            opacity: 0;
+        }
+
+        #peel.returned {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        #peel-handle {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 120px;
+            height: 14px;
+            background: repeating-linear-gradient(90deg, #8B6914 0px, #a07828 4px, #8B6914 8px);
+            border-radius: 0 7px 7px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        #peel-board {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 160px;
+            height: 32px;
+            background: linear-gradient(135deg, #c9a96e, #b8944a, #c9a96e);
+            border-radius: 16px 8px 8px 16px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #peel-board img {
+            max-width: 90%;
+            max-height: 28px;
+            object-fit: contain;
+            display: none;
+        }
+
+        /* ===== DROP ZONE ===== */
+        #drop-zone {
+            width: 320px;
+            min-height: 120px;
+            flex-shrink: 0;
+            border: 2px dashed rgba(255, 107, 26, 0.4);
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(92, 58, 30, 0.3), rgba(45, 26, 10, 0.4));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 1rem;
+            text-align: center;
+            position: relative;
+        }
+
+        #drop-zone:hover,
+        #drop-zone.dragover {
+            border-color: var(--fire-orange);
+            background: linear-gradient(135deg, rgba(255, 107, 26, 0.1), rgba(92, 58, 30, 0.4));
+            box-shadow: 0 0 25px rgba(255, 107, 26, 0.2);
+        }
+
+        #drop-zone.shake {
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            20% {
+                transform: translateX(-10px);
+            }
+
+            40% {
+                transform: translateX(10px);
+            }
+
+            60% {
+                transform: translateX(-6px);
+            }
+
+            80% {
+                transform: translateX(6px);
+            }
+        }
+
+        #drop-prompt {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.2rem;
+        }
+
+        #drop-zone .icon {
+            font-size: 2.2rem;
+        }
+
+        #drop-zone p {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+
+        #drop-zone .hint {
+            font-size: 0.7rem;
+            opacity: 0.5;
+        }
+
+        #drop-zone.has-image {
+            border-style: solid;
+            border-color: rgba(255, 215, 0, 0.5);
+        }
+
+        #preview-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        #preview-container img {
+            max-width: 100%;
+            max-height: 80px;
+            border-radius: 6px;
+            object-fit: contain;
+        }
+
+        #preview-container .filename {
+            font-size: 0.7rem;
+            opacity: 0.6;
+        }
+
+        /* ===== BUTTONS ===== */
+        #controls {
+            margin-top: 0.5rem;
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            padding: 0.7rem 1.8rem;
+            border: none;
+            border-radius: 30px;
+            font-family: 'Lilita One', cursive;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #fire-btn {
+            background: linear-gradient(135deg, var(--fire-orange), var(--ember-red));
+            color: white;
+            box-shadow: 0 4px 20px rgba(255, 107, 26, 0.4);
+        }
+
+        #fire-btn:hover:not(:disabled) {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 30px rgba(255, 107, 26, 0.6);
+        }
+
+        #fire-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #fire-btn:active:not(:disabled) {
+            transform: scale(0.97);
+        }
+
+        #save-btn {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            display: none;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+        }
+
+        #save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(46, 204, 113, 0.5);
+        }
+
+        #reset-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--cream-dough);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: none;
+        }
+
+        #reset-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* ===== STATUS ===== */
+        #status {
+            margin-top: 0.5rem;
+            text-align: center;
+            flex-shrink: 0;
+            min-height: 45px;
+        }
+
+        #status-text {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        #progress-bar {
+            width: 280px;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 0.4rem auto 0;
+            overflow: hidden;
+            display: none;
+        }
+
+        #progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--ember-red), var(--fire-orange), var(--glow-yellow));
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        /* ===== RESULT ===== */
+        #result-area {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 320px;
+        }
+
+        #result-canvas-wrap {
+            background: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 16px 16px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            max-width: 100%;
+        }
+
+        #result-canvas-wrap img {
+            display: block;
+            max-width: 300px;
+            max-height: 200px;
+            object-fit: contain;
+        }
+
+        /* ===== TOAST ===== */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            padding: 0.7rem 1.4rem;
+            border-radius: 24px;
+            background: rgba(45, 26, 10, 0.95);
+            border: 1px solid rgba(255, 107, 26, 0.4);
+            backdrop-filter: blur(10px);
+            font-size: 0.85rem;
+            transition: transform 0.4s cubic-bezier(0.2, 0, 0, 1);
+            z-index: 200;
+            white-space: nowrap;
+        }
+
+        #toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ===== HELP MODAL ===== */
+        #help-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 300;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        #help-modal.show {
+            display: flex;
+        }
+
+        #help-content {
+            background: linear-gradient(135deg, #2D1A0A, #1A1008);
+            border: 1px solid rgba(255, 107, 26, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        #help-content h2 {
+            font-family: 'Lilita One', cursive;
+            color: var(--fire-orange);
+            margin-bottom: 0.8rem;
+        }
+
+        #help-content p {
+            font-size: 0.8rem;
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+        }
+
+        #help-content .step {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-start;
+            margin: 0.4rem 0;
+        }
+
+        #help-content .step-num {
+            background: var(--fire-orange);
+            color: white;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        #help-close {
+            margin-top: 1rem;
+            padding: 0.4rem 1.2rem;
+            background: var(--fire-orange);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 700;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-height: 700px) {
+            #oven-wrapper {
+                width: 260px;
+                height: 180px;
+            }
+
+            #oven-interior {
+                width: 160px;
+                height: 125px;
+            }
+
+            #door-container {
+                width: 145px;
+                height: 100px;
+            }
+
+            #drop-zone {
+                min-height: 90px;
+            }
+
+            #peel.shoved {
+                transform: translateX(0) translateY(-130px) scale(0.6);
+                opacity: 0;
+            }
+        }
+
+        @media (max-height: 580px) {
+            header {
+                padding: 0.3rem 1rem;
+            }
+
+            header h1 {
+                font-size: 1.2rem;
+            }
+
+            #oven-wrapper {
+                width: 200px;
+                height: 140px;
+            }
+
+            #oven-interior {
+                width: 130px;
+                height: 100px;
+                top: 18px;
+            }
+
+            #door-container {
+                width: 115px;
+                height: 80px;
+            }
+
+            #drop-zone {
+                min-height: 70px;
+                padding: 0.5rem;
+            }
+
+            .btn {
+                padding: 0.5rem 1.2rem;
+                font-size: 0.9rem;
+            }
+
+            #peel.shoved {
+                transform: translateX(0) translateY(-100px) scale(0.5);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- SVG defs for gauge gradient -->
+    <svg style="position:absolute;width:0;height:0;overflow:hidden">
+        <defs>
+            <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#FFD700" />
+                <stop offset="50%" stop-color="#FF6B1A" />
+                <stop offset="100%" stop-color="#CC2200" />
+            </linearGradient>
+        </defs>
+    </svg>
+
+    <header>
+        <h1>🍕 The Pizza Oven</h1>
+        <div class="header-controls">
+            <button id="sound-toggle" title="Toggle sound">🔊</button>
+            <button id="help-btn" title="How it works">?</button>
+        </div>
+    </header>
+
+    <main id="scene">
+        <div id="oven-wrapper">
+            <div id="chimney">
+                <div class="smoke"></div>
+                <div class="smoke"></div>
+                <div class="smoke"></div>
+            </div>
+            <div id="oven-arch">
+                <div id="oven-interior">
+                    <canvas id="fire-canvas"></canvas>
+                    <div id="baking-preview"><img id="baking-img" alt="baking"></div>
+                </div>
+                <div id="door-container">
+                    <div id="oven-door">
+                        <div class="handle"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="gauge-box">
+                <svg viewBox="0 0 70 70">
+                    <path class="gauge-bg" d="M 10 55 A 30 30 0 1 1 60 55" />
+                    <path class="gauge-fill" id="gauge-arc" d="M 10 55 A 30 30 0 1 1 60 55" />
+                    <polygon class="gauge-needle" id="gauge-needle" points="35,12 33,35 37,35" />
+                    <circle cx="35" cy="35" r="4" fill="#F5E6C8" />
+                </svg>
+                <div id="temp-label">0°F</div>
+            </div>
+            <div id="light-burst"></div>
+        </div>
+
+        <div id="peel">
+            <div id="peel-board"><img id="peel-img" alt="pizza"></div>
+            <div id="peel-handle"></div>
+        </div>
+
+        <div id="drop-zone">
+            <div id="drop-prompt">
+                <div class="icon">📸</div>
+                <p>Toss your image here</p>
+                <p class="hint">or click to browse</p>
+            </div>
+            <div id="preview-container">
+                <img id="preview-img" alt="preview">
+                <span class="filename" id="file-name"></span>
+            </div>
+        </div>
+        <input type="file" id="file-input" accept="image/*" hidden>
+
+        <div id="result-area">
+            <div id="result-canvas-wrap">
+                <img id="result-img" alt="result">
+            </div>
+        </div>
+
+        <div id="controls">
+            <button class="btn" id="fire-btn" disabled>🔥 FIRE IT UP 🔥</button>
+            <button class="btn" id="save-btn">🔪 SLICE &amp; SAVE</button>
+            <button class="btn" id="reset-btn">🔄 New Pizza</button>
+        </div>
+        <div id="status">
+            <p id="status-text">Drop an image to start baking</p>
+            <div id="progress-bar">
+                <div id="progress-fill"></div>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast"></div>
+
+    <div id="help-modal">
+        <div id="help-content">
+            <h2>🍕 How It Works</h2>
+            <div class="step">
+                <div class="step-num">1</div>
+                <p><b>Toss</b> — Drag & drop an image (your raw pizza)</p>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <p><b>Fire</b> — Hit "FIRE IT UP" to shove it in the oven</p>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <p><b>Bake</b> — AI removes the background while it cooks</p>
+            </div>
+            <div class="step">
+                <div class="step-num">4</div>
+                <p><b>Slice</b> — Download your perfectly cut-out image</p>
+            </div>
+            <p style="margin-top:0.8rem;font-size:0.7rem;opacity:0.5;">Uses a locally downloaded AI model (Xenova/modnet) running inside your browser — your images never leave your device.</p>
+            <button id="help-close">Got it!</button>
+        </div>
+    </div>
+
+    <canvas id="process-canvas" style="display:none"></canvas>
+
+    <script type="module">
+        /* ============================
+           STATE & DOM REFS
+        ============================ */
+        const $ = id => document.getElementById(id);
+        const dom = {
+            scene: $('scene'), dropZone: $('drop-zone'), dropPrompt: $('drop-prompt'),
+            previewContainer: $('preview-container'), previewImg: $('preview-img'),
+            fileName: $('file-name'), fileInput: $('file-input'),
+            fireBtn: $('fire-btn'), saveBtn: $('save-btn'), resetBtn: $('reset-btn'),
+            ovenDoor: $('oven-door'), ovenInterior: $('oven-interior'),
+            fireCanvas: $('fire-canvas'), bakingPreview: $('baking-preview'),
+            bakingImg: $('baking-img'), peel: $('peel'), peelImg: $('peel-img'),
+            gaugeArc: $('gauge-arc'), gaugeNeedle: $('gauge-needle'), tempLabel: $('temp-label'),
+            lightBurst: $('light-burst'), statusText: $('status-text'),
+            progressBar: $('progress-bar'), progressFill: $('progress-fill'),
+            resultArea: $('result-area'), resultImg: $('result-img'),
+            toast: $('toast'), soundToggle: $('sound-toggle'),
+            helpBtn: $('help-btn'), helpModal: $('help-modal'), helpClose: $('help-close'),
+            processCanvas: $('process-canvas')
+        };
+
+        let state = {
+            phase: 'idle', // idle | ready | loading | shove | bake | done
+            imageFile: null, imageUrl: null,
+            modelReady: false, muted: false,
+            resultBlob: null
+        };
+
+        /* ============================
+           SOUND ENGINE (Web Audio API)
+        ============================ */
+        class SoundEngine {
+            constructor() { this.ctx = null; this.muted = false; }
+            init() {
+                if (this.ctx) return;
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            resume() { if (this.ctx?.state === 'suspended') this.ctx.resume(); }
+
+            slamDoor() {
+                if (this.muted || !this.ctx) return;
+                const len = this.ctx.sampleRate * 0.15;
+                const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+                const d = buf.getChannelData(0);
+                for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.08));
+                const src = this.ctx.createBufferSource(); src.buffer = buf;
+                const filt = this.ctx.createBiquadFilter(); filt.type = 'lowpass'; filt.frequency.value = 250;
+                const gain = this.ctx.createGain(); gain.gain.value = 0.6;
+                src.connect(filt); filt.connect(gain); gain.connect(this.ctx.destination);
+                src.start();
+            }
+
+            crackleId = null;
+            startCrackle() {
+                if (this.muted || !this.ctx) return;
+                const len = this.ctx.sampleRate * 2;
+                const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+                const d = buf.getChannelData(0);
+                for (let i = 0; i < len; i++) {
+                    d[i] = (Math.random() * 2 - 1) * 0.04 * (0.5 + 0.5 * Math.sin(i / 800));
+                    if (Math.random() < 0.002) d[i] += (Math.random() - 0.5) * 0.3;
+                }
+                const src = this.ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+                const filt = this.ctx.createBiquadFilter(); filt.type = 'bandpass'; filt.frequency.value = 3000; filt.Q.value = 0.5;
+                const gain = this.ctx.createGain(); gain.gain.value = 0.3;
+                src.connect(filt); filt.connect(gain); gain.connect(this.ctx.destination);
+                src.start(); this._crackleNodes = { src, gain };
+            }
+            stopCrackle() {
+                if (this._crackleNodes) {
+                    this._crackleNodes.gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.5);
+                    setTimeout(() => { try { this._crackleNodes.src.stop(); } catch (e) { } }, 600);
+                    this._crackleNodes = null;
+                }
+            }
+
+            ding() {
+                if (this.muted || !this.ctx) return;
+                [523.25, 659.25, 783.99].forEach((f, i) => {
+                    const osc = this.ctx.createOscillator(); osc.type = 'sine'; osc.frequency.value = f;
+                    const g = this.ctx.createGain();
+                    g.gain.setValueAtTime(0.25, this.ctx.currentTime + i * 0.15);
+                    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + i * 0.15 + 0.6);
+                    osc.connect(g); g.connect(this.ctx.destination);
+                    osc.start(this.ctx.currentTime + i * 0.15);
+                    osc.stop(this.ctx.currentTime + i * 0.15 + 0.6);
+                });
+            }
+        }
+        const sound = new SoundEngine();
+
+        /* ============================
+           FIRE PARTICLE SYSTEM
+        ============================ */
+        class FireParticles {
+            constructor(canvas) {
+                this.canvas = canvas; this.ctx = canvas.getContext('2d');
+                this.particles = []; this.running = false;
+                this.resize();
+            }
+            resize() {
+                const r = this.canvas.parentElement?.getBoundingClientRect();
+                if (r) { this.canvas.width = r.width; this.canvas.height = r.height; }
+            }
+            start() {
+                this.running = true; this.resize(); this.loop();
+            }
+            stop() { this.running = false; this.particles = []; this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); }
+            spawn() {
+                if (this.particles.length > 45) return;
+                const w = this.canvas.width, h = this.canvas.height;
+                this.particles.push({
+                    x: w * 0.3 + Math.random() * w * 0.4,
+                    y: h * 0.7 + Math.random() * h * 0.3,
+                    vx: (Math.random() - 0.5) * 0.8,
+                    vy: -1 - Math.random() * 2,
+                    size: 1.5 + Math.random() * 3,
+                    life: 1,
+                    decay: 0.008 + Math.random() * 0.015,
+                    color: ['#FFD700', '#FF6B1A', '#CC2200', '#FF4500'][Math.floor(Math.random() * 4)]
+                });
+            }
+            loop = () => {
+                if (!this.running) return;
+                const { ctx, canvas: c } = this;
+                ctx.clearRect(0, 0, c.width, c.height);
+                for (let i = 0; i < 3; i++) this.spawn();
+                this.particles = this.particles.filter(p => {
+                    p.x += p.vx; p.y += p.vy; p.life -= p.decay;
+                    if (p.life <= 0) return false;
+                    ctx.globalAlpha = p.life;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+                    ctx.fill();
+                    return true;
+                });
+                ctx.globalAlpha = 1;
+                requestAnimationFrame(this.loop);
+            }
+        }
+        const fire = new FireParticles(dom.fireCanvas);
+
+        /* ============================
+           TEMPERATURE GAUGE
+        ============================ */
+        function setGauge(pct) {
+            // Arc length is ~188.5 (path for 270° arc, radius 30)
+            const maxDash = 188.5;
+            dom.gaugeArc.style.strokeDashoffset = maxDash - (maxDash * pct);
+            const angle = -135 + 270 * pct; // needle from -135° to +135°
+            dom.gaugeNeedle.style.transform = `rotate(${angle}deg)`;
+            dom.tempLabel.textContent = `${Math.round(pct * 900)}°F`;
+        }
+
+        /* ============================
+           TOAST NOTIFICATIONS
+        ============================ */
+        let toastTimer;
+        function showToast(msg) {
+            clearTimeout(toastTimer);
+            dom.toast.textContent = msg;
+            dom.toast.classList.add('show');
+            toastTimer = setTimeout(() => dom.toast.classList.remove('show'), 3000);
+        }
+
+        /* ============================
+           WEB WORKER (ML Inference)
+        ============================ */
+        let worker = null;
+        let modelLoadResolve, modelLoadReject;
+        let segmentResolve, segmentReject;
+
+        function createWorker() {
+            const code = `
+        import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers';
+        env.allowLocalModels = true;
+        env.allowRemoteModels = true;
+        env.localModelPath = self.location.origin + '/models/';
+        let segmenter = null;
+        self.onmessage = async (e) => {
+          if (e.data.type === 'init') {
+            try {
+              segmenter = await pipeline('image-segmentation', 'Xenova/modnet', {
+                progress_callback: (p) => self.postMessage({ type: 'progress', data: p })
+              });
+              self.postMessage({ type: 'ready' });
+            } catch (err) {
+              self.postMessage({ type: 'error', message: err.message });
+            }
+          }
+          if (e.data.type === 'segment') {
+            try {
+              const res = await segmenter(e.data.url);
+              const m = res[0].mask;
+              const arr = new Uint8ClampedArray(m.data);
+              self.postMessage({ type: 'result', mask: arr, w: m.width, h: m.height, ch: m.channels||1 }, [arr.buffer]);
+            } catch (err) {
+              self.postMessage({ type: 'error', message: err.message });
+            }
+          }
+        };
+      `;
+            const blob = new Blob([code], { type: 'text/javascript' });
+            worker = new Worker(URL.createObjectURL(blob), { type: 'module' });
+            worker.onmessage = handleWorkerMsg;
+            worker.onerror = (e) => {
+                console.error('Worker error:', e);
+                // Only show error toast if user is actively trying to use the app
+                if (state.phase !== 'idle') {
+                    showToast('Oven broke down. Try refreshing.');
+                }
+            };
+        }
+
+        const downloadProgress = {};
+        function handleWorkerMsg(e) {
+            const { type } = e.data;
+            if (type === 'progress') {
+                const p = e.data.data;
+                if (p.status === 'download' && p.total) {
+                    downloadProgress[p.file] = { loaded: p.loaded, total: p.total };
+                    const files = Object.values(downloadProgress);
+                    const totalLoaded = files.reduce((s, f) => s + f.loaded, 0);
+                    const totalSize = files.reduce((s, f) => s + f.total, 0);
+                    const pct = totalSize > 0 ? totalLoaded / totalSize : 0;
+                    updateLoadProgress(pct);
+                }
+                if (p.status === 'ready' || p.status === 'done') {
+                    // File chunk done
+                }
+            }
+            if (type === 'ready') {
+                state.modelReady = true;
+                if (modelLoadResolve) modelLoadResolve();
+            }
+            if (type === 'result') {
+                if (segmentResolve) segmentResolve(e.data);
+            }
+            if (type === 'error') {
+                console.error('Worker ML error:', e.data.message);
+                if (segmentReject) {
+                    segmentReject(new Error(e.data.message));
+                    segmentReject = null;
+                    showToast('🔥 Oven broke down. Try refreshing.');
+                    resetToIdle();
+                }
+                if (modelLoadReject) {
+                    modelLoadReject(new Error(e.data.message));
+                    modelLoadReject = null;
+                    // Only show error if user triggered loading (not background preload)
+                    if (state.phase === 'loading') {
+                        showToast('🔥 Oven broke down. Try refreshing.');
+                        resetToIdle();
+                    }
+                }
+            }
+        }
+
+        function loadModel() {
+            return new Promise((res, rej) => {
+                modelLoadResolve = res; modelLoadReject = rej;
+                worker.postMessage({ type: 'init' });
+            });
+        }
+        function segmentImage(dataUrl) {
+            return new Promise((res, rej) => {
+                segmentResolve = res; segmentReject = rej;
+                worker.postMessage({ type: 'segment', url: dataUrl });
+            });
+        }
+
+        function updateLoadProgress(pct) {
+            dom.progressBar.style.display = 'block';
+            dom.progressFill.style.width = `${Math.round(pct * 100)}%`;
+            dom.statusText.textContent = `Heating up the oven... ${Math.round(pct * 100)}%`;
+            setGauge(pct * 0.8); // reserve last 20% for inference
+        }
+
+        /* ============================
+           IMAGE HANDLING
+        ============================ */
+        function handleFile(file) {
+            if (!file || !file.type.startsWith('image/')) {
+                showToast("That's not a pizza! Drop an image file.");
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                showToast("That's a thicc pizza 🍕 Try under 5MB.");
+                return;
+            }
+            state.imageFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                state.imageUrl = e.target.result;
+                dom.previewImg.src = state.imageUrl;
+                dom.peelImg.src = state.imageUrl;
+                dom.bakingImg.src = state.imageUrl;
+                dom.peelImg.style.display = 'block';
+                dom.fileName.textContent = file.name;
+                dom.dropPrompt.style.display = 'none';
+                dom.previewContainer.style.display = 'flex';
+                dom.dropZone.classList.add('has-image');
+                dom.fireBtn.disabled = false;
+                state.phase = 'ready';
+                dom.statusText.textContent = 'Ready to bake! Hit FIRE IT UP 🔥';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        /* ============================
+           CANVAS COMPOSITING
+        ============================ */
+        function applyMask(imgEl, maskData, maskW, maskH, maskCh) {
+            const cv = dom.processCanvas;
+            cv.width = imgEl.naturalWidth; cv.height = imgEl.naturalHeight;
+            const ctx = cv.getContext('2d');
+            ctx.drawImage(imgEl, 0, 0);
+            const imgData = ctx.getImageData(0, 0, cv.width, cv.height);
+
+            // Create mask canvas and scale to image size
+            const mCv = document.createElement('canvas');
+            mCv.width = maskW; mCv.height = maskH;
+            const mCtx = mCv.getContext('2d');
+            const mImgData = mCtx.createImageData(maskW, maskH);
+            for (let i = 0; i < maskW * maskH; i++) {
+                const v = maskCh === 1 ? maskData[i] : maskData[i * maskCh];
+                mImgData.data[i * 4] = v; mImgData.data[i * 4 + 1] = v;
+                mImgData.data[i * 4 + 2] = v; mImgData.data[i * 4 + 3] = 255;
+            }
+            mCtx.putImageData(mImgData, 0, 0);
+
+            // Scale mask to image dimensions
+            const sCv = document.createElement('canvas');
+            sCv.width = cv.width; sCv.height = cv.height;
+            const sCtx = sCv.getContext('2d');
+            sCtx.drawImage(mCv, 0, 0, cv.width, cv.height);
+            const scaled = sCtx.getImageData(0, 0, cv.width, cv.height);
+
+            // Apply: if mask pixel dark -> transparent
+            for (let i = 0; i < imgData.data.length; i += 4) {
+                if (scaled.data[i] < 128) imgData.data[i + 3] = 0;
+            }
+            ctx.putImageData(imgData, 0, 0);
+            return new Promise(res => cv.toBlob(res, 'image/png'));
+        }
+
+        /* ============================
+           PHASE CONTROLLER
+        ============================ */
+        async function startBaking() {
+            if (state.phase !== 'ready' || !state.imageUrl) {
+                dom.dropZone.classList.add('shake');
+                setTimeout(() => dom.dropZone.classList.remove('shake'), 500);
+                showToast("Toss your pizza first! 🍕");
+                return;
+            }
+            sound.init(); sound.resume();
+            dom.fireBtn.disabled = true;
+
+            // --- LOAD MODEL if needed ---
+            if (!state.modelReady) {
+                state.phase = 'loading';
+                dom.statusText.textContent = 'Heating up the oven for the first time... ☕';
+                dom.progressBar.style.display = 'block';
+                try {
+                    // If worker died during background preload, recreate it
+                    if (!worker || modelLoadResolve === null) {
+                        try { worker?.terminate(); } catch (e) { }
+                        createWorker();
+                    }
+                    await loadModel();
+                } catch (err) {
+                    showToast('🔥 Oven broke down. Try refreshing the page.');
+                    resetToIdle(); return;
+                }
+            }
+
+            // --- SHOVE PHASE ---
+            state.phase = 'shove';
+            dom.statusText.textContent = 'Shoving it in the oven...';
+            dom.progressBar.style.display = 'none';
+            dom.dropZone.style.display = 'none';
+
+            // Peel slides into oven
+            dom.peel.classList.add('shoved');
+            await sleep(600);
+
+            // Door closes
+            dom.ovenDoor.classList.remove('open');
+            sound.slamDoor();
+            await sleep(800);
+
+            // --- BAKE PHASE ---
+            state.phase = 'bake';
+            dom.ovenInterior.classList.add('active');
+            dom.bakingPreview.style.display = 'flex';
+            fire.start();
+            sound.startCrackle();
+            dom.statusText.textContent = 'Baking at 900°F... 🔥';
+
+            // Animate gauge to 90%
+            animateGaugeTo(0.9, 3000);
+
+            // Run segmentation
+            try {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = state.imageUrl; });
+                const result = await segmentImage(state.imageUrl);
+                const blob = await applyMask(img, result.mask, result.w, result.h, result.ch);
+                state.resultBlob = blob;
+            } catch (err) {
+                console.error(err);
+                showToast('Something burned! Try again.');
+                resetToIdle(); return;
+            }
+
+            // --- DONE PHASE ---
+            state.phase = 'done';
+            sound.stopCrackle();
+            fire.stop();
+            dom.bakingPreview.style.display = 'none';
+            dom.ovenInterior.classList.remove('active');
+
+            // Gauge to 100%
+            setGauge(1);
+            dom.tempLabel.textContent = '900°F';
+            dom.statusText.textContent = 'Perfectly baked! 🍕✨';
+
+            await sleep(300);
+            // Door opens with light burst
+            dom.ovenDoor.classList.add('open');
+            dom.lightBurst.classList.add('show');
+            sound.ding();
+            await sleep(600);
+            dom.lightBurst.classList.remove('show');
+
+            // Peel returns with result
+            dom.peel.classList.remove('shoved');
+            await sleep(800);
+
+            // Show result
+            const resultUrl = URL.createObjectURL(state.resultBlob);
+            dom.resultImg.src = resultUrl;
+            dom.resultArea.style.display = 'flex';
+            dom.peelImg.src = resultUrl;
+            dom.saveBtn.style.display = 'inline-block';
+            dom.resetBtn.style.display = 'inline-block';
+            dom.statusText.textContent = 'Background removed! Slice & save your masterpiece.';
+        }
+
+        function animateGaugeTo(target, duration) {
+            const start = performance.now();
+            const startVal = parseFloat(dom.gaugeArc.style.strokeDashoffset || 188.5);
+            const startPct = 1 - startVal / 188.5;
+            function tick(now) {
+                const elapsed = now - start;
+                const pct = Math.min(1, elapsed / duration);
+                const val = startPct + (target - startPct) * easeOutCubic(pct);
+                setGauge(val);
+                if (pct < 1 && state.phase === 'bake') requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+        }
+        function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+        function resetToIdle() {
+            state.phase = 'idle'; state.imageFile = null; state.imageUrl = null;
+            state.resultBlob = null;
+            dom.fireBtn.disabled = true;
+            dom.saveBtn.style.display = 'none'; dom.resetBtn.style.display = 'none';
+            dom.resultArea.style.display = 'none';
+            dom.dropZone.style.display = 'flex';
+            dom.dropPrompt.style.display = 'flex';
+            dom.previewContainer.style.display = 'none';
+            dom.dropZone.classList.remove('has-image');
+            dom.peel.classList.remove('shoved');
+            dom.peelImg.style.display = 'none';
+            dom.ovenDoor.classList.remove('open');
+            dom.ovenInterior.classList.remove('active');
+            dom.bakingPreview.style.display = 'none';
+            dom.progressBar.style.display = 'none';
+            dom.progressFill.style.width = '0%';
+            fire.stop(); sound.stopCrackle();
+            setGauge(0);
+            dom.statusText.textContent = 'Drop an image to start baking';
+        }
+
+        function saveResult() {
+            if (!state.resultBlob) return;
+            const a = document.createElement('a');
+            const url = URL.createObjectURL(state.resultBlob);
+            a.href = url;
+            
+            let baseName = 'pizza_result';
+            if (state.imageFile && state.imageFile.name) {
+                const nameParts = state.imageFile.name.split('.');
+                if (nameParts.length > 1) {
+                    nameParts.pop(); // Remove extension
+                    baseName = nameParts.join('.');
+                } else {
+                    baseName = state.imageFile.name;
+                }
+            }
+            
+            a.download = baseName + "_no_bg.png";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 100);
+            showToast('Sliced & saved! 🍕');
+        }
+
+        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        /* ============================
+           EVENT LISTENERS
+        ============================ */
+        // Drag & drop
+        dom.dropZone.addEventListener('click', () => dom.fileInput.click());
+        dom.fileInput.addEventListener('change', (e) => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+        dom.dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dom.dropZone.classList.add('dragover'); });
+        dom.dropZone.addEventListener('dragleave', () => dom.dropZone.classList.remove('dragover'));
+        dom.dropZone.addEventListener('drop', (e) => {
+            e.preventDefault(); dom.dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+        });
+
+        // Buttons
+        dom.fireBtn.addEventListener('click', startBaking);
+        dom.saveBtn.addEventListener('click', saveResult);
+        dom.resetBtn.addEventListener('click', resetToIdle);
+
+        // Sound toggle
+        dom.soundToggle.addEventListener('click', () => {
+            state.muted = !state.muted; sound.muted = state.muted;
+            dom.soundToggle.textContent = state.muted ? '🔇' : '🔊';
+            dom.soundToggle.classList.toggle('muted', state.muted);
+        });
+
+        // Help modal
+        dom.helpBtn.addEventListener('click', () => dom.helpModal.classList.add('show'));
+        dom.helpClose.addEventListener('click', () => dom.helpModal.classList.remove('show'));
+        dom.helpModal.addEventListener('click', (e) => { if (e.target === dom.helpModal) dom.helpModal.classList.remove('show'); });
+
+        /* ============================
+           INIT
+        ============================ */
+        try {
+            createWorker();
+            // Preload model in background (silently — don't show errors)
+            loadModel().catch((err) => {
+                console.log('Background preload failed (will retry on demand):', err?.message);
+                // Reset the promise handlers so they don't stale
+                modelLoadResolve = null;
+                modelLoadReject = null;
+            });
+        } catch (err) {
+            console.warn('Worker creation failed, will try on demand');
+        }
+        setGauge(0);
+
+        // Check canvas support
+        if (!dom.processCanvas.getContext) {
+            dom.statusText.textContent = 'Your browser doesn\'t support Canvas. Please use a modern browser.';
+            dom.fireBtn.disabled = true;
+        }
+    </script>
+</body>
+
+</html>
